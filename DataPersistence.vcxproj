@@ -146,6 +146,9 @@
     <ClCompile Include="src\controllers\ProductionLineController.cpp" />
     <ClCompile Include="src\controllers\MonitoringController.cpp" />
     <ClCompile Include="src\controllers\ShipmentController.cpp" />
+    <ClCompile Include="src\persistence\JsonFileStorage.cpp" />
+    <ClCompile Include="src\repositories\SampleRepository.cpp" />
+    <ClCompile Include="src\repositories\OrderRepository.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\models\Item.h" />
@@ -168,6 +171,13 @@
     <ClInclude Include="src\controllers\ShipmentController.h" />
     <ClInclude Include="src\utils\InputHelper.h" />
     <ClInclude Include="src\utils\ConsoleUtil.h" />
+    <ClInclude Include="src\models\Sample.h" />
+    <ClInclude Include="src\models\Order.h" />
+    <ClInclude Include="src\persistence\JsonFileStorage.h" />
+    <ClInclude Include="src\repositories\ISampleRepository.h" />
+    <ClInclude Include="src\repositories\IOrderRepository.h" />
+    <ClInclude Include="src\repositories\SampleRepository.h" />
+    <ClInclude Include="src\repositories\OrderRepository.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
