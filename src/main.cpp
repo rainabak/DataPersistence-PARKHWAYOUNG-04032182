@@ -11,21 +11,34 @@
 #include "controllers/ProductionLineController.h"
 #include "controllers/MonitoringController.h"
 #include "controllers/ShipmentController.h"
+#include "persistence/JsonFileStorage.h"
+#include "repositories/SampleRepository.h"
+#include "repositories/OrderRepository.h"
 
 int main()
 {
-    MainMenuView        mainView;
-    SampleView          sampleView;
-    OrderView           orderView;
-    ProductionLineView  productionLineView;
-    MonitoringView      monitoringView;
-    ShipmentView        shipmentView;
+    ConsoleUtil::init();
 
-    SampleController        sampleCtrl(sampleView);
-    OrderController         orderCtrl(orderView);
+    // Persistence layer
+    JsonFileStorage  sampleStorage("data/samples.json");
+    JsonFileStorage  orderStorage("data/orders.json");
+    SampleRepository sampleRepo(sampleStorage);
+    OrderRepository  orderRepo(orderStorage);
+
+    // Views
+    MainMenuView       mainView;
+    SampleView         sampleView;
+    OrderView          orderView;
+    ProductionLineView productionLineView;
+    MonitoringView     monitoringView;
+    ShipmentView       shipmentView;
+
+    // Controllers
+    SampleController         sampleCtrl(sampleView, sampleRepo);
+    OrderController          orderCtrl(orderView, orderRepo);
     ProductionLineController productionLineCtrl(productionLineView);
-    MonitoringController    monitoringCtrl(monitoringView);
-    ShipmentController      shipmentCtrl(shipmentView);
+    MonitoringController     monitoringCtrl(monitoringView);
+    ShipmentController       shipmentCtrl(shipmentView);
 
     MainController controller(mainView,
                               sampleCtrl,
