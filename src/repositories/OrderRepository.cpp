@@ -1,146 +1,30 @@
 #include "OrderRepository.h"
+#include "../persistence/JsonUtil.h"
 #include <algorithm>
 #include <sstream>
 
-// ── JSON 직렬화/역직렬화 (파일 내부 전용) ────────────────────────────────────
-
-static std::string escapeJson(const std::string& s)
-{
-    std::string out;
-    out.reserve(s.size());
-    for (char c : s)
-    {
-        if      (c == '"')  out += "\\\"";
-        else if (c == '\\') out += "\\\\";
-        else if (c == '\n') out += "\\n";
-        else if (c == '\t') out += "\\t";
-        else if (c == '\r') out += "\\r";
-        else                out += c;
-    }
-    return out;
-}
-
-static std::string readString(const std::string& json, const std::string& key)
-{
-    const std::string search = "\"" + key + "\":";
-    size_t pos = json.find(search);
-    if (pos == std::string::npos) return "";
-
-    pos += search.size();
-    while (pos < json.size() && (json[pos] == ' ' || json[pos] == '\t')) pos++;
-    if (pos >= json.size() || json[pos] != '"') return "";
-    pos++;
-
-    std::string result;
-    while (pos < json.size() && json[pos] != '"')
-    {
-        if (json[pos] == '\\' && pos + 1 < json.size())
-        {
-            pos++;
-            if      (json[pos] == '"')  result += '"';
-            else if (json[pos] == '\\') result += '\\';
-            else if (json[pos] == 'n')  result += '\n';
-            else if (json[pos] == 't')  result += '\t';
-            else if (json[pos] == 'r')  result += '\r';
-            else                        result += json[pos];
-        }
-        else
-        {
-            result += json[pos];
-        }
-        pos++;
-    }
-    return result;
-}
-
-static int readInt(const std::string& json, const std::string& key)
-{
-    const std::string search = "\"" + key + "\":";
-    size_t pos = json.find(search);
-    if (pos == std::string::npos) return 0;
-
-    pos += search.size();
-    while (pos < json.size() && (json[pos] == ' ' || json[pos] == '\t')) pos++;
-
-    std::string numStr;
-    if (pos < json.size() && json[pos] == '-') { numStr += '-'; pos++; }
-    while (pos < json.size() && std::isdigit(static_cast<unsigned char>(json[pos])))
-        numStr += json[pos++];
-
-    return numStr.empty() ? 0 : std::stoi(numStr);
-}
-
-static std::vector<std::string> splitItems(const std::string& json)
-{
-    std::vector<std::string> result;
-
-    const std::string search = "\"items\":";
-    size_t pos = json.find(search);
-    if (pos == std::string::npos) return result;
-
-    pos += search.size();
-    while (pos < json.size() && json[pos] != '[') pos++;
-    if (pos >= json.size()) return result;
-    pos++;
-
-    int    depth = 0;
-    size_t start = std::string::npos;
-    bool   inStr = false;
-
-    for (size_t i = pos; i < json.size(); i++)
-    {
-        const char c = json[i];
-
-        if (c == '"' && (i == 0 || json[i - 1] != '\\'))
-        {
-            inStr = !inStr;
-        }
-        else if (!inStr)
-        {
-            if (c == '{')
-            {
-                if (depth == 0) start = i;
-                depth++;
-            }
-            else if (c == '}')
-            {
-                depth--;
-                if (depth == 0 && start != std::string::npos)
-                {
-                    result.push_back(json.substr(start, i - start + 1));
-                    start = std::string::npos;
-                }
-            }
-            else if (c == ']' && depth == 0)
-            {
-                break;
-            }
-        }
-    }
-
-    return result;
-}
+// ── Order 직렬화/역직렬화 (이 파일 전용) ─────────────────────────────────────
 
 static std::string toJson(const Order& o)
 {
     std::ostringstream oss;
     oss << "{"
-        << "\"id\":"           << o.id                        << ","
-        << "\"productName\":\"" << escapeJson(o.productName)  << "\","
-        << "\"quantity\":"     << o.quantity                  << ","
-        << "\"status\":\""     << escapeJson(o.status)        << "\""
+        << "\"id\":"            << o.id                                  << ","
+        << "\"productName\":\"" << JsonUtil::escapeString(o.productName) << "\","
+        << "\"quantity\":"      << o.quantity                            << ","
+        << "\"status\":\""      << JsonUtil::escapeString(o.status)      << "\""
         << "}";
     return oss.str();
 }
 
-static std::string buildJson(const std::vector<Order>& items, int nextId)
+static std::string buildJson(const std::vector<Order>& orders, int nextId)
 {
     std::ostringstream oss;
     oss << "{\"nextId\":" << nextId << ",\"items\":[";
-    for (size_t i = 0; i < items.size(); i++)
+    for (size_t i = 0; i < orders.size(); i++)
     {
         if (i > 0) oss << ",";
-        oss << toJson(items[i]);
+        oss << toJson(orders[i]);
     }
     oss << "]}";
     return oss.str();
@@ -148,32 +32,32 @@ static std::string buildJson(const std::vector<Order>& items, int nextId)
 
 static Order fromJson(const std::string& obj)
 {
-    Order o{};
-    o.id          = readInt(obj,    "id");
-    o.productName = readString(obj, "productName");
-    o.quantity    = readInt(obj,    "quantity");
-    o.status      = readString(obj, "status");
-    return o;
+    return Order
+    {
+        JsonUtil::readInt(obj,    "id"),
+        JsonUtil::readString(obj, "productName"),
+        JsonUtil::readInt(obj,    "quantity"),
+        JsonUtil::readString(obj, "status")
+    };
 }
 
-static void parseJson(const std::string& raw,
-                      std::vector<Order>& out,
-                      int& nextId)
+static void loadFromJson(const std::string& raw,
+                         std::vector<Order>& out,
+                         int& nextId)
 {
     out.clear();
     nextId = 1;
     if (raw.empty()) return;
 
-    nextId = readInt(raw, "nextId");
+    nextId = JsonUtil::readInt(raw, "nextId");
 
-    for (const auto& obj : splitItems(raw))
+    for (const auto& obj : JsonUtil::splitObjects(raw))
     {
         Order o = fromJson(obj);
         if (o.id > 0)
             out.push_back(std::move(o));
     }
 
-    // 파일의 nextId가 실제 최대 ID보다 작은 경우 보정
     for (const auto& o : out)
     {
         if (o.id >= nextId)
@@ -186,16 +70,13 @@ static void parseJson(const std::string& raw,
 OrderRepository::OrderRepository(JsonFileStorage& storage)
     : m_storage(storage)
 {
-    const std::string raw = m_storage.load();
-    parseJson(raw, m_orders, m_nextId);
+    loadFromJson(m_storage.load(), m_orders, m_nextId);
 }
 
 void OrderRepository::add(const Order& order)
 {
-    Order newOrder  = order;
-    newOrder.id     = m_nextId++;
-    m_orders.push_back(newOrder);
-    m_storage.save(buildJson(m_orders, m_nextId));
+    m_orders.push_back({ m_nextId++, order.productName, order.quantity, order.status });
+    persist();
 }
 
 std::vector<Order> OrderRepository::findAll() const
@@ -217,7 +98,7 @@ bool OrderRepository::update(const Order& order)
     if (it == m_orders.end()) return false;
 
     *it = order;
-    m_storage.save(buildJson(m_orders, m_nextId));
+    persist();
     return true;
 }
 
@@ -228,6 +109,11 @@ bool OrderRepository::remove(int id)
     if (it == m_orders.end()) return false;
 
     m_orders.erase(it);
-    m_storage.save(buildJson(m_orders, m_nextId));
+    persist();
     return true;
+}
+
+void OrderRepository::persist() const
+{
+    m_storage.save(buildJson(m_orders, m_nextId));
 }

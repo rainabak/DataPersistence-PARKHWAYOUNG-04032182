@@ -147,6 +147,7 @@
     <ClCompile Include="src\controllers\MonitoringController.cpp" />
     <ClCompile Include="src\controllers\ShipmentController.cpp" />
     <ClCompile Include="src\persistence\JsonFileStorage.cpp" />
+    <ClCompile Include="src\persistence\JsonUtil.cpp" />
     <ClCompile Include="src\repositories\SampleRepository.cpp" />
     <ClCompile Include="src\repositories\OrderRepository.cpp" />
   </ItemGroup>
@@ -174,6 +175,7 @@
     <ClInclude Include="src\models\Sample.h" />
     <ClInclude Include="src\models\Order.h" />
     <ClInclude Include="src\persistence\JsonFileStorage.h" />
+    <ClInclude Include="src\persistence\JsonUtil.h" />
     <ClInclude Include="src\repositories\ISampleRepository.h" />
     <ClInclude Include="src\repositories\IOrderRepository.h" />
     <ClInclude Include="src\repositories\SampleRepository.h" />

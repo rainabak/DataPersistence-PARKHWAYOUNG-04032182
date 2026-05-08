@@ -18,4 +18,6 @@ private:
     JsonFileStorage&   m_storage;
     std::vector<Order> m_orders;
     int                m_nextId{ 1 };
+
+    void persist() const;
 };
