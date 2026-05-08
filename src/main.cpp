@@ -17,8 +17,6 @@
 
 int main()
 {
-    ConsoleUtil::init();
-
     // Persistence layer
     JsonFileStorage  sampleStorage("data/samples.json");
     JsonFileStorage  orderStorage("data/orders.json");

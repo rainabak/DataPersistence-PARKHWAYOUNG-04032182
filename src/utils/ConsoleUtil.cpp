@@ -3,11 +3,6 @@
 #include <limits>
 #include <windows.h>
 
-void ConsoleUtil::init()
-{
-    SetConsoleOutputCP(CP_UTF8);
-}
-
 void ConsoleUtil::clearScreen()
 {
     system("cls");
