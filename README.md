@@ -108,3 +108,7 @@ Controller는 이 인터페이스만 의존한다. 구현체가 메모리인지,
 3. 메뉴에서 Item을 추가, 수정, 삭제한다.
 4. 프로그램을 종료했다가 다시 실행한다.
 5. 이전에 입력한 데이터가 그대로 남아 있으면 Persistence 검증 성공이다.
+
+## 테스트 결과 화면 
+<img width="1482" height="762" alt="스크린샷 2026-05-08 124351" src="https://github.com/user-attachments/assets/d1aa1558-b3b7-48ef-8a4e-6ca2a3e7377c" />
+<img width="1482" height="762" alt="스크린샷 2026-05-08 124403" src="https://github.com/user-attachments/assets/e2cf2f55-b68e-4e89-9cd6-f665b1570591" />
