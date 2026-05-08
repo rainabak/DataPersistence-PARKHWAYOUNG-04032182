@@ -1,0 +1,11 @@
+.vs/
+x64/
+DataPersistence/x64/
+*.user
+*.suo
+*.db
+*.db-shm
+*.db-wal
+*.opendb
+*.vsidx
+.claude/settings.local.json
