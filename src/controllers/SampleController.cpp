@@ -1,4 +1,4 @@
-#include "SampleController.h"
+﻿#include "SampleController.h"
 #include "../utils/ConsoleUtil.h"
 
 SampleController::SampleController(SampleView& view, ISampleRepository& repo)

@@ -1,4 +1,4 @@
-# DataPersistence
+﻿# DataPersistence
 
 C++17 기반 Console MVC 애플리케이션.  
 DB 없이 JSON 파일로 데이터를 저장하고 불러오는 Persistence Layer를 검증하는 PoC 프로젝트.
